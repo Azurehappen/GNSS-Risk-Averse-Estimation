@@ -209,6 +209,10 @@ p.raps.velver_cov_spec = 2.88/2;
 p.raps_penalty = NaN;
 p.check_prior = false;
 
+p.nb_diag = 1; % Non-binary DiagRAPS
+p.bi_diag = 2; % Binary DiagRAPS
+p.bi_diag_cvx = 3; % Binary DiagRAPS Globally Optimal Format
+
 p.num_sats_window = NaN(1,10);
 p.GDOP = NaN;
 end

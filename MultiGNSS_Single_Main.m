@@ -15,10 +15,10 @@ addpath('eph')
 addpath('pos')
 addpath('corr')
 addpath('init')
-addpath('estimation')
+addpath('estimation') 
 %--------------------------------%
 % Pick the Data Number
-data_num = 5;
+data_num = 1; % 1-> DGNSS application, 2 -> PPP application
 [files, data_p] = dataPathLoader(data_num);
 %--------------------------------%
 
@@ -34,10 +34,12 @@ end
 %%
 p = initialParameters(p, files, eph,data_p);
 p.run_mode = 0;
-p.post_mode  = p.mode_ppp; % sps=Standard GNSS, ppp = PPP, dgnss = DGNSS
+if data_num == 1
+    p.post_mode  = p.mode_dgnss;
+elseif data_num == 2
+    p.post_mode  = p.mode_ppp;
+end
 p.IGS_enable = 1;
-p.VRS_mode = 0;
-p.double_diff = 0;
 p.elev_mark_rad  = deg2rad(10);
 % To use Multi-GNSS and DGNSS, GPS have to be enabled.
 p.enableGPS  = 1; % Enable GPS: 1 means enable, 0 means close
@@ -49,14 +51,11 @@ p.tec_tmax = 15;
 p.tec_tmin = 0;
 p.L2enable = 0;
 p.enable_vtec = true;
-p.est_mode = p.td_est; % ekf_est, map_est, td_est, raps_ned_est
-p.state_mode = p.pva_mode; % POS, PVA
-% obs = p.obs_b;
-% p.Grdpos.pos = [-742080.469;-5462030.972;3198339.001];
-% p.Grdpos.t = NaN;
-if p.state_mode == p.pos_mode
-    p.ekf_para.q_pos = 200^2;
-end
+p.est_mode = p.raps_ned_est; % map_est, td_est, raps_ned_est
+p.state_mode = p.pva_mode;
+% nb_diag (Non-binary DiagRAPS), bi_diag (Binary DiagRAPS)
+% bi_diag_cvx (Binary DiagRAPS Globally Optimal Format)
+p.raps_mode = p.nb_diag;
 output = compute_gnss_ecef(p,eph,obs);
 
 %%

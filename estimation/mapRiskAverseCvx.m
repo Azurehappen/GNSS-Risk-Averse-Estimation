@@ -31,12 +31,6 @@ x_min = x_prior - 200;
 bvec = ones(m,1);          % Initial b to be 1
 num_nodes = 0;
 flag = true;
-% if ~all(G*bvec >= g)% && flag_rapid == true
-%     max_lhs = G * bvec;
-%     ind = find(g > max_lhs);
-%     g(ind) = 0.75 * max_lhs(ind);  % loosen constraint
-%     flag = false;
-% end
 
 u_len = 0;
 ind = [];

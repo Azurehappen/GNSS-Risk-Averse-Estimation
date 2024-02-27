@@ -74,8 +74,6 @@ zk = res_all + H_os * x_minus;
 switch p.est_mode
     case p.ekf_est
         [x_plus, cov_plus] = ekfUpdate(x_minus, p.state_cov, res_all, H_os, R);
-    % case p.td_est
-    %     [x_plus, cov_plus] = ekfUpdate(x_minus, p.state_cov, res_all, H_os, R);
     case p.map_est
         lla = ecef2lla(x_minus(1:3)', 'WGS84');
         R_e2g=computeRotForEcefToNed(lla');
@@ -155,21 +153,19 @@ switch p.est_mode
                 zeros(length(x_minus)-3, 3), p_clk];
         end
         J_l = p_u^(-1);
-        % tic
-        % mapRiskAverseNonBiSlackMaxJ (Non-binary DiagRAPS)
-        % mapRiskAverseSlack (Binary DiagRAPS)
-        % mapRiskAverseCvx (Binary DiagRAPS Globally Optimal Format)
-        [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty] = ...
-            mapRiskAverseNonBiSlackMaxJ(num_constrain,res_all,Ht,Pt_minus,R,...
-            diag(diag(J_l)),xt_minus);
-        % comp_t = toc;
-        % p.comp_t = comp_t;
-        % tic
-        % [~,~,~,~,~,p.augcost_bcd,~,~,p.pos_risk_bcd] = ...
-        %     mapRiskAverseSlack(num_constrain,res_all,Ht,Pt_minus,R,...
-        %     diag(diag(J_l)),xt_minus,p.td_lambda,length(y_rho));
-        % comp_t = toc;
-        % p.comp_t_bcd = comp_t;
+        if p.raps_mode == p.nb_diag
+            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty] = ...
+                mapRiskAverseNonBiSlackMaxJ(num_constrain,res_all,Ht,Pt_minus,R,...
+                diag(diag(J_l)),xt_minus);
+        elseif p.raps_mode == p.bi_diag
+            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty] = ...
+                mapRiskAverseSlack(num_constrain,res_all,Ht,Pt_minus,R,...
+                diag(diag(J_l)),xt_minus);
+        elseif p.raps_mode == p.bi_diag_cvx
+            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty] = ...
+                mapRiskAverseCvx(num_constrain,res_all,Ht,Pt_minus,R,...
+                diag(diag(J_l)),xt_minus);
+        end
         cov_plus = Rot_e2g' * cov_ned * Rot_e2g;
         p.num_meas_used = sum(b>0.001);
         b(b>0.01) = 1;

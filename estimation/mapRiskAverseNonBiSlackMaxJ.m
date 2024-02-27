@@ -1,18 +1,16 @@
 function [flag,x_post,P_post,b,J_out,augcost,num_nodes,constraint,risk,penalty_sum] =...
     mapRiskAverseNonBiSlackMaxJ(num_constrain,y,H,P,R,J_l,x_prior)
-% Solves RAPS using B&B integer optimization approach.
+% Solves RAPS using Non-binary DiagRAPS.
 % Computes MAP state estimate using the selected measurements.
 % OUTPUT:   x_post   - posterior state vector estimate
 %           by       - measurement selection vector (binary)
 %           augcost  - augmented cost for RAPS B&B
-%           exitflag - see MATLAB function: intlinprog for description
 % INPUT:    y - measurements
 %           H - measurement matrix
 %           P - Prior Covariance matrix
 %           r - Measurement Covariance matrix
 %           J_l - Information Matrix Lower Bound
 %           x_prior - prior state vector estimate
-% reference: [1] - PPP_RAPS_Linear.pdf
 
 Jpminus = P^-1;         % state prior info. matrix
 Jrminus = R^-1;         % measurement info. matrix
@@ -84,8 +82,7 @@ while num_iter < total_trial
         penalty = 50*ones(length(ind),1);
         cost_b = [cost_b;penalty];
     end
-    % solve for optimal integer measurement selection vector (Branch & Bound search)
-    % solves the optimization problem in eqn (22) in [1].
+    % solve for optimal integer measurement selection vector
     [b_all,~,exitflag,~] = linprog(cost_b,ieqLHS,ieqRHS,Aeq,Beq,lowerbound,upperbound,option);
     b = b_all(1:m);
     if length(b_all) ~= m

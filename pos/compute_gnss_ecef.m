@@ -126,13 +126,7 @@ for i = 1:p.inval:N
             if ~isempty(find(cpt.iono_delay~=0, 1))
                 cpt.corr_range = cpt.corr_range - cpt.trop_delay - cpt.iono_delay;
                 %%-------------%%
-                % Compute the final position
-                if p.double_diff == 0
-                    %[estState,res] = userpos(p,cpt);
-                    [p,estState,res] = stateUpdate(p,cpt,dt);
-                else
-                    [re_pos,clock_bias,res] = userpos_2diff(p,cpt);
-                end
+                [p,estState,res] = stateUpdate(p,cpt,dt);
                 if ~isempty(estState.pos)
                     log = save_result(p,cpt,log,i,estState,res,grd,obs.datetime(i),false);
                 end
@@ -153,23 +147,6 @@ for i = 1:p.inval:N
             if ~isempty(estState.pos)
                 log = save_result(p,cpt,log,i,estState,res,grd,obs.datetime(i),false);
             end
-        case p.mode_rtkfloat
-            if isempty(p.eph_b) || isempty(p.obs_b)
-                warning('No differential source given');
-                continue;
-            end
-            [cpt,n] = diff_corr_compute(p,cpt,obs.tr_posix(i));
-            if isempty(n) || max(cpt.num_sv(cpt.num_sv>0)) < p.min_sv
-                continue;
-            end
-            cpt.corr_range = cpt.corr_range - cpt.diff_corr;
-            cpt.doppler = cpt.doppler - cpt.diff_doppler;
-            % [estState,res] = weightLsSolver(p,cpt,false);
-            [p,estState,res] = rtkStateUpdate(p,cpt,dt);
-            if isempty(estState.pos)
-                continue;
-            end
-            log = save_result(p,cpt,log,i,estState,res,grd,obs.datetime(i),false);
         otherwise
             warning('Unsupport positioning option');
     end

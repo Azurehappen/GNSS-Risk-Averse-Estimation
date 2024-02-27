@@ -1,18 +1,16 @@
 function [flag,x_post,P_post,b,J_out,augcost,num_iter,constraint,risk,penalty_sum] =...
     mapRiskAverseSlack(num_constrain,y,H,P,R,J_l,x_prior)
-% Solves RAPS using B&B integer optimization approach.
+% Solves RAPS using Binary DiagRAPS
 % Computes MAP state estimate using the selected measurements.
 % OUTPUT:   x_post   - posterior state vector estimate
 %           by       - measurement selection vector (binary)
 %           augcost  - augmented cost for RAPS B&B
-%           exitflag - see MATLAB function: intlinprog for description
 % INPUT:    y - measurements
 %           H - measurement matrix
 %           P - Prior Covariance matrix
 %           r - Measurement Covariance matrix
 %           J_l - Information Matrix Lower Bound
 %           x_prior - prior state vector estimate
-% reference: [1] - PPP_RAPS_Linear.pdf
 
 Jpminus = P^-1;         % state prior info. matrix
 Jrminus = R^-1;         % measurement info. matrix
@@ -87,8 +85,7 @@ while num_iter < total_trial
         penalty = 50*ones(length(ind),1);
         cost_b = [cost_b;penalty];
     end
-    % solve for optimal integer measurement selection vector (Branch & Bound search)
-    % solves the optimization problem in eqn (22) in [1].
+    % solve for optimal integer measurement selection vector
     [b_all,~,exitflag,output] = intlinprog(cost_b,intcon,ieqLHS,ieqRHS,Aeq,Beq,lowerbound,upperbound,option);
     b = b_all(1:m);
     if length(b_all) ~= m
@@ -119,20 +116,6 @@ risk = compute_risk(xcurr,x_prior,Jpminus,b,H,y,Jrminus);
 J_out   = calcJb(b,H,R,Jpminus); % posterior state information matrix
 %J_out % should meet spec
 P_post = inv(J_out);
-
-% flag_pos = true;
-% flag_vel = true;
-% if flag == true
-%     [flag_pos,flag_vel] = rapsValidation(td_lambda+1,P,y,H,R,b,num_range);
-% end
-% if flag_pos == false || flag_vel == false
-%     num_iter = 0;
-%     b = thresholdTest(td_lambda,P, y, H, R);
-%     [x_post,augcost] = MAP(b,y,H,E_R,E_P,x_prior);
-%     J_out   = calcJb(b,H,R,Jpminus); % posterior state information matrix
-%     P_post = inv(J_out);
-%     flag = false;
-% end
 
 end
 
