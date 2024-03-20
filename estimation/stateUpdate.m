@@ -84,8 +84,9 @@ switch p.est_mode
             zeros(length(x_minus)-9, 9), eye(length(x_minus)-9)];
         H_os = H_os * Rot_e2g';
         cov_prior = Rot_e2g' * p.state_cov * Rot_e2g;
-        [x_plus,cov_plus,p.infor_ned,p.augcost] = ...
+        [x_plus,cov_ned,p.infor_ned,p.augcost] = ...
             mapUpdate(ones(num,1),x_minus,cov_prior,res_all,H_os,R,Rot_e2g);
+        cov_plus = Rot_e2g' * cov_ned * Rot_e2g;
         p.num_meas_used = num;
     case p.td_est
         [flag_rapid,p.num_sats_window] = checkRapidNumSatChange(p.num_sats_window, sum(cpt.num_sv~=0));
@@ -104,8 +105,9 @@ switch p.est_mode
             zeros(length(x_minus)-9, 9), eye(length(x_minus)-9)];
         H_os = H_os * Rot_e2g';
         cov_prior = Rot_e2g' * p.state_cov * Rot_e2g;
-        [x_plus,cov_plus,p.infor_ned,p.augcost] = ...
+        [x_plus,cov_ned,p.infor_ned,p.augcost] = ...
             mapUpdate(b, x_minus, cov_prior, res_all, H_os, R, Rot_e2g);
+        cov_plus = Rot_e2g' * cov_ned * Rot_e2g;
         p.num_meas_used = sum(b);
     case p.raps_ned_est
         % Solve in NED frame
