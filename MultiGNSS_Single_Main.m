@@ -43,7 +43,7 @@ p.IGS_enable = 1;
 p.elev_mark_rad  = deg2rad(10);
 % To use Multi-GNSS and DGNSS, GPS have to be enabled.
 p.enableGPS  = 1; % Enable GPS: 1 means enable, 0 means close
-p.enableGLO  = 0; % Enable GLO: 1 means enable, 0 means close
+p.enableGLO  = 1; % Enable GLO: 1 means enable, 0 means close
 p.enableGAL  = 1; % Enable GAL: 1 means enable, 0 means close
 p.enableBDS  = 1; % Enable BDS: 1 means enable, 0 means close
 p.inval = 1; % Computation time interval

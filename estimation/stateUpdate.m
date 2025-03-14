@@ -1,5 +1,5 @@
 function [p,estState,res] = stateUpdate(p, cpt, dt)
-tic
+
 %-------------------%
 % Initialize
 estState.clock_sys = dictionary;
@@ -73,7 +73,9 @@ end
 zk = res_all + H_os * x_minus;
 switch p.est_mode
     case p.ekf_est
+        tic;
         [x_plus, cov_plus] = ekfUpdate(x_minus, p.state_cov, res_all, H_os, R);
+        comp_t = toc;
     case p.map_est
         lla = ecef2lla(x_minus(1:3)', 'WGS84');
         R_e2g=computeRotForEcefToNed(lla');
@@ -82,11 +84,13 @@ switch p.est_mode
             zeros(3,6), R_e2g];
         Rot_e2g = [R_pva, zeros(9,length(x_minus)-9);
             zeros(length(x_minus)-9, 9), eye(length(x_minus)-9)];
+        tic;
         H_os = H_os * Rot_e2g';
         cov_prior = Rot_e2g' * p.state_cov * Rot_e2g;
         [x_plus,cov_ned,p.infor_ned,p.augcost] = ...
             mapUpdate(ones(num,1),x_minus,cov_prior,res_all,H_os,R,Rot_e2g);
         cov_plus = Rot_e2g' * cov_ned * Rot_e2g;
+        comp_t = toc;
         p.num_meas_used = num;
     case p.td_est
         [flag_rapid,p.num_sats_window] = checkRapidNumSatChange(p.num_sats_window, sum(cpt.num_sv~=0));
@@ -95,7 +99,6 @@ switch p.est_mode
             p.state_cov(1:end-1,1:end-1) = diag(150^2*ones(1,length(x_minus)-1));
             p.state_cov(end,end) = 20^2;
         end
-        b = thresholdTest(p.td_lambda,p.state_cov, res_all, H_os, R);
         lla = ecef2lla(x_minus(1:3)', 'WGS84');
         R_e2g=computeRotForEcefToNed(lla');
         R_pva = [R_e2g, zeros(3,6);
@@ -103,11 +106,15 @@ switch p.est_mode
             zeros(3,6), R_e2g];
         Rot_e2g = [R_pva, zeros(9,length(x_minus)-9); 
             zeros(length(x_minus)-9, 9), eye(length(x_minus)-9)];
+
+        tic;
+        b = thresholdTest(p.td_lambda,p.state_cov, res_all, H_os, R);
         H_os = H_os * Rot_e2g';
         cov_prior = Rot_e2g' * p.state_cov * Rot_e2g;
         [x_plus,cov_ned,p.infor_ned,p.augcost] = ...
             mapUpdate(b, x_minus, cov_prior, res_all, H_os, R, Rot_e2g);
         cov_plus = Rot_e2g' * cov_ned * Rot_e2g;
+        comp_t = toc;
         p.num_meas_used = sum(b);
     case p.raps_ned_est
         % Solve in NED frame
@@ -156,15 +163,15 @@ switch p.est_mode
         end
         J_l = p_u^(-1);
         if p.raps_mode == p.nb_diag
-            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty] = ...
+            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty,comp_t] = ...
                 mapRiskAverseNonBiSlackMaxJ(num_constrain,res_all,Ht,Pt_minus,R,...
                 diag(diag(J_l)),xt_minus);
         elseif p.raps_mode == p.bi_diag
-            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty] = ...
+            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty,comp_t] = ...
                 mapRiskAverseSlack(num_constrain,res_all,Ht,Pt_minus,R,...
                 diag(diag(J_l)),xt_minus);
         elseif p.raps_mode == p.bi_diag_cvx
-            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty] = ...
+            [flag,x_ned,cov_ned,b,J_out,p.augcost,num_iter,constraint,p.pos_risk,p.raps_penalty,comp_t] = ...
                 mapRiskAverseCvx(num_constrain,res_all,Ht,Pt_minus,R,...
                 diag(diag(J_l)),xt_minus);
         end
@@ -186,7 +193,6 @@ switch p.est_mode
         error('Incorrect state estimation mode configuration');
 end
 
-comp_t = toc;
 p.comp_t = comp_t;
 
 p.state0 = x_plus;

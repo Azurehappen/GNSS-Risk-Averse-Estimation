@@ -1,4 +1,4 @@
-function [flag,x_post,P_post,b,J_out,augcost,num_nodes,constraint,risk,penalty_sum] =...
+function [flag,x_post,P_post,b,J_out,augcost,num_nodes,constraint,risk,penalty_sum,comp_t] =...
     mapRiskAverseNonBiSlackMaxJ(num_constrain,y,H,P,R,J_l,x_prior)
 % Solves RAPS using Non-binary DiagRAPS.
 % Computes MAP state estimate using the selected measurements.
@@ -72,6 +72,7 @@ if flag == false
 else
     C(1) = cost(xcurr,x_prior,Jpminus,b,cost_b);
 end
+tic;
 while num_iter < total_trial
     Aeq = [];   % Coefficients for equality constrains: Aeq * b = Beq
     Beq = [];   % Values for equality constrains: Aeq * b = Beq
@@ -106,7 +107,7 @@ while num_iter < total_trial
     end
     num_iter = num_iter + 1;
 end % while cnt_it
-
+comp_t = toc;
 risk = compute_risk(xcurr,x_prior,Jpminus,b,H,y,Jrminus);
 
 J_out = calcJb(b,H,R,Jpminus); % posterior state information matrix

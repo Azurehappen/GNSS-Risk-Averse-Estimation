@@ -11,7 +11,8 @@ dtime = [];
 % Convert date and time to gps seconds of week
 % The time in the GT is UTC
 for i = 1:size(data,1)
-    date_time = data.x_date(i) + data.time(i) + seconds(18);
+    date = datetime(data.x_date(i), 'InputFormat', 'yyyy/MM/dd');
+    date_time = date + data.time(i) + seconds(18);
     date_vector = datevec(date_time);
     [~, ~, sow(i)] = date2gnsst(date_vector);
     dtime = [dtime,datetime(date_vector)];

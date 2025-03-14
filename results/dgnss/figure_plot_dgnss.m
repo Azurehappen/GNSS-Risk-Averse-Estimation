@@ -434,7 +434,7 @@ binCenters_ekf = binEdges_nb(1:end-1) + diff(binEdges_ekf) / 2;
 % legend('RAPS-bi', 'RAPS-nb');
 
 % Define bin edges
-binEdges = linspace(0, 0.1, 50);
+binEdges = linspace(0, 0.04, 50);
 % Create histograms for each dataset
 figure(5); % Open a new figure
 % Histogram for RAPS-bi
@@ -449,6 +449,11 @@ xlabel('Per epoch computation time, second');
 ylabel('Probability');
 legend('RAPS-bi', 'RAPS-nb');
 hold off; % Release the plot hold
+
+fprintf('KF Mean: %.5f, STD: %.5f, Max: %.5f, Min: %.5f.\n', mean(ekf_compt), std(ekf_compt), max(ekf_compt), min(ekf_compt))
+fprintf('TD Mean: %.5f, STD: %.5f, Max: %.5f, Min: %.5f.\n', mean(td2_compt), std(td2_compt), max(td2_compt), min(td2_compt))
+fprintf('RAPS-bi Mean: %.5f, STD: %.5f, Max: %.5f, Min: %.5f.\n', mean(raps_b_compt), std(raps_b_compt), max(raps_b_compt), min(raps_b_compt))
+fprintf('RAPS-nb Mean: %.5f, STD: %.5f, Max: %.5f, Min: %.5f.\n', mean(raps_nb_compt), std(raps_nb_compt), max(raps_nb_compt), min(raps_nb_compt))
 
 %% Split for feasible or non-feasible
 % feasible

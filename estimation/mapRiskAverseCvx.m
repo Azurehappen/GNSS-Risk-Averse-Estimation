@@ -1,4 +1,4 @@
-function [flag,x_post,P_post,bvec,J_out,augcost,num_nodes,constraint,pos_risk] =...
+function [flag,x_post,P_post,bvec,J_out,augcost,num_nodes,constraint,pos_risk,comp_t] =...
     mapRiskAverseCvx(num_constrain,y,H,P,R,J_l,x_prior)
 % Solves RAPS using optimization approach.
 % Computes MAP state estimate using the selected measurements.
@@ -51,6 +51,9 @@ g_o = g(logicalIndex==0);
 G_u = G(logicalIndex==1,:);
 g_u = g(logicalIndex==1);  
 u_coe = 50*ones(1,u_len);
+
+tic;
+
 if u_len == 0
     cvx_begin quiet
     variable x(n)
@@ -122,6 +125,7 @@ else
         cvx_end
     end
 end
+comp_t = toc;
 % augcost = cost(x,x_prior,Jpminus,b,H,y,Jrminus);
 augcost = objf;
 pos_risk = compute_pos_risk(x,x_prior,P,b(1:m/2),...
